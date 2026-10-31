@@ -1,0 +1,1103 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniComércio ERP & POS - Gestão Integrada de Comércio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81'
+                        },
+                        darkbg: '#0f172a',
+                        cardbg: '#1e293b',
+                        borderbg: '#334155'
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- FontAwesome & Chart.js -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #0f172a; color: #f8fafc; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        @media print {
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            body { background: white !important; color: black !important; }
+        }
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col md:flex-row antialiased">
+
+    <!-- SIDEBAR DE NAVEGAÇÃO -->
+    <aside class="w-full md:w-64 bg-cardbg border-r border-borderbg flex-shrink-0 flex flex-col justify-between no-print">
+        <div>
+            <!-- LOGO -->
+            <div class="p-5 border-b border-borderbg flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="p-2.5 bg-gradient-to-tr from-brand-600 to-indigo-400 rounded-xl text-white shadow-lg shadow-brand-500/20">
+                        <i class="fa-solid fa-store text-lg"></i>
+                    </div>
+                    <div>
+                        <h1 class="text-base font-extrabold tracking-tight text-white leading-none">OMNI<span class="text-brand-500">COMÉRCIO</span></h1>
+                        <span class="text-[10px] text-emerald-400 font-semibold tracking-widest uppercase">ERP & POS PRO</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MENU LINKS -->
+            <nav class="p-3 space-y-1 text-sm font-medium">
+                <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-white bg-brand-600">
+                    <i class="fa-solid fa-chart-pie w-5 text-center"></i> Dashboard Executivo
+                </button>
+                <button onclick="switchTab('pos')" id="nav-pos" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i class="fa-solid fa-cash-register w-5 text-center text-emerald-400"></i> Frente de Caixa (PDV)
+                </button>
+                <button onclick="switchTab('products')" id="nav-products" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i class="fa-solid fa-boxes-stacked w-5 text-center text-sky-400"></i> Estoque & Produtos
+                </button>
+                <button onclick="switchTab('finance')" id="nav-finance" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i class="fa-solid fa-calculator w-5 text-center text-amber-400"></i> Financeiro & DRE
+                </button>
+                <button onclick="switchTab('crm')" id="nav-crm" class="nav-btn w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition text-gray-400 hover:text-white hover:bg-gray-800">
+                    <i class="fa-solid fa-users w-5 text-center text-purple-400"></i> Clientes & CRM
+                </button>
+            </nav>
+        </div>
+
+        <!-- AÇÕES INFERIORES -->
+        <div class="p-3 border-t border-borderbg space-y-2">
+            <button onclick="loadSeedData()" class="w-full py-2 px-3 bg-indigo-950/70 hover:bg-indigo-900 border border-indigo-800/60 rounded-xl text-xs text-indigo-300 font-semibold transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-database"></i> Carregar Dados Teste
+            </button>
+            <button onclick="resetData()" class="w-full py-2 px-3 bg-red-950/30 hover:bg-red-900/50 border border-red-900/50 rounded-xl text-xs text-red-400 font-semibold transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-trash-arrow-up"></i> Zerar Banco de Dados
+            </button>
+        </div>
+    </aside>
+
+    <!-- ÁREA PRINCIPAL -->
+    <main class="flex-1 flex flex-col min-w-0 overflow-y-auto no-print">
+
+        <!-- HEADER TOP BAR -->
+        <header class="bg-cardbg border-b border-borderbg px-6 py-3.5 flex items-center justify-between gap-4">
+            <div class="flex items-center gap-2 text-xs text-gray-400">
+                <span id="currentDateStr" class="font-medium text-gray-300"></span>
+                <span>•</span>
+                <span class="inline-flex items-center gap-1.5 text-emerald-400 font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Sistema Ativo
+                </span>
+            </div>
+
+            <div class="flex items-center gap-3 text-xs">
+                <button onclick="toggleTheme()" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700 transition">
+                    <i class="fa-solid fa-moon me-1" id="theme-icon"></i> <span id="theme-text">Modo Escuro</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- CONTEÚDO DAS TABS -->
+        <div class="p-6 space-y-6">
+
+            <!-- TAB 1: DASHBOARD EXECUTIVO -->
+            <section id="tab-dashboard" class="tab-content space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Painel de Controle Executivo</h2>
+                        <p class="text-xs text-gray-400">Visão geral do desempenho comercial e financeiro</p>
+                    </div>
+                </div>
+
+                <!-- CARDS DE METRICAS (KPIS) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+                    <div class="bg-cardbg border border-borderbg rounded-2xl p-4 space-y-2">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>Vendas do Dia</span>
+                            <i class="fa-solid fa-basket-shopping text-emerald-400"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-white mono" id="kpiSalesToday">R$ 0,00</div>
+                        <div class="text-[10px] text-emerald-400" id="kpiSalesCountToday">0 pedidos hoje</div>
+                    </div>
+
+                    <div class="bg-cardbg border border-borderbg rounded-2xl p-4 space-y-2">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>Faturamento Mês</span>
+                            <i class="fa-solid fa-sack-dollar text-brand-400"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-brand-400 mono" id="kpiSalesMonth">R$ 0,00</div>
+                        <div class="text-[10px] text-gray-400">Receita bruta acumulada</div>
+                    </div>
+
+                    <div class="bg-cardbg border border-borderbg rounded-2xl p-4 space-y-2">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>Lucro Líquido Mês</span>
+                            <i class="fa-solid fa-chart-line text-sky-400"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-sky-400 mono" id="kpiNetProfitMonth">R$ 0,00</div>
+                        <div class="text-[10px] text-sky-400" id="kpiMarginMonth">Margem Líquida: 0%</div>
+                    </div>
+
+                    <div class="bg-cardbg border border-borderbg rounded-2xl p-4 space-y-2">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>Contas a Pagar</span>
+                            <i class="fa-solid fa-file-invoice-dollar text-red-400"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-red-400 mono" id="kpiBillsPending">R$ 0,00</div>
+                        <div class="text-[10px] text-red-400" id="kpiBillsCount">0 pendentes</div>
+                    </div>
+
+                    <div class="bg-cardbg border border-borderbg rounded-2xl p-4 space-y-2">
+                        <div class="flex justify-between items-center text-xs text-gray-400">
+                            <span>Estoque Crítico</span>
+                            <i class="fa-solid fa-triangle-exclamation text-amber-400"></i>
+                        </div>
+                        <div class="text-2xl font-extrabold text-amber-400 mono" id="kpiLowStockCount">0</div>
+                        <div class="text-[10px] text-amber-400">Itens precisando reposição</div>
+                    </div>
+                </div>
+
+                <!-- GRÁFICOS BI -->
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                    <div class="lg:col-span-8 bg-cardbg border border-borderbg rounded-2xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-white flex items-center justify-between">
+                            <span><i class="fa-solid fa-chart-column text-brand-500 me-2"></i> Receitas vs. Despesas</span>
+                            <span class="text-xs text-gray-400 font-normal">Comparativo Financeiro</span>
+                        </h3>
+                        <div class="h-64 relative">
+                            <canvas id="chartFinancial"></canvas>
+                        </div>
+                    </div>
+
+                    <div class="lg:col-span-4 bg-cardbg border border-borderbg rounded-2xl p-5 space-y-4">
+                        <h3 class="text-sm font-semibold text-white flex items-center justify-between">
+                            <span><i class="fa-solid fa-pie-chart text-brand-500 me-2"></i> Vendas por Categoria</span>
+                        </h3>
+                        <div class="h-64 relative flex justify-center items-center">
+                            <canvas id="chartCategories"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 2: FRENTE DE CAIXA (PDV) -->
+            <section id="tab-pos" class="tab-content hidden space-y-6">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+                    <!-- SELEÇÃO DE PRODUTOS -->
+                    <div class="lg:col-span-7 space-y-4">
+                        <div class="bg-cardbg border border-borderbg rounded-2xl p-4 flex gap-3">
+                            <div class="relative flex-1">
+                                <i class="fa-solid fa-magnifying-glass absolute left-3 top-3 text-xs text-gray-500"></i>
+                                <input type="text" id="posSearch" oninput="renderPosProducts()" placeholder="Buscar produto por nome ou SKU..." class="w-full bg-gray-900 border border-gray-800 rounded-xl pl-9 pr-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                            </div>
+                            <select id="posCategoryFilter" onchange="renderPosProducts()" class="bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                                <option value="all">Todas Categorias</option>
+                            </select>
+                        </div>
+
+                        <!-- GRID DE CARDS DE PRODUTOS -->
+                        <div class="grid grid-cols-2 sm:grid-cols-3 gap-3 max-h-[550px] overflow-y-auto pr-1" id="posProductGrid">
+                            <!-- Injetado via JS -->
+                        </div>
+                    </div>
+
+                    <!-- CARRINHO DE COMPRAS E CHECKOUT -->
+                    <div class="lg:col-span-5 bg-cardbg border border-borderbg rounded-2xl p-5 space-y-4 flex flex-col justify-between">
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between border-b border-borderbg pb-3">
+                                <h3 class="font-bold text-white text-base flex items-center gap-2">
+                                    <i class="fa-solid fa-cart-shopping text-emerald-400"></i> Carrinho Atual
+                                </h3>
+                                <button onclick="clearPosCart()" class="text-xs text-red-400 hover:text-red-300">Limpar</button>
+                            </div>
+
+                            <!-- CLIENTE VINCULADO -->
+                            <div>
+                                <label class="block text-xs font-medium text-gray-400 mb-1">Cliente da Venda</label>
+                                <select id="posClientSelect" class="w-full bg-gray-900 border border-gray-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                    <option value="">Consumidor Não Identificado (Balcão)</option>
+                                </select>
+                            </div>
+
+                            <!-- LISTA DE ITENS -->
+                            <div class="max-h-[220px] overflow-y-auto divide-y divide-gray-800 pr-1" id="posCartList">
+                                <div class="text-center py-8 text-xs text-gray-500">Carrinho vazio. Clique nos produtos para adicionar.</div>
+                            </div>
+                        </div>
+
+                        <!-- CÁLCULOS E PAGAMENTO -->
+                        <div class="space-y-3 border-t border-borderbg pt-3">
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[11px] text-gray-400 mb-1">Desconto (R$)</label>
+                                    <input type="number" id="posDiscount" value="0.00" min="0" step="0.50" oninput="updatePosTotals()" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-2.5 py-1.5 text-xs text-white mono">
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-gray-400 mb-1">Forma de Pagamento</label>
+                                    <select id="posPaymentMethod" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-2 py-1.5 text-xs text-white">
+                                        <option value="Pix">Pix / Qrcode</option>
+                                        <option value="Dinheiro">Dinheiro (Espécie)</option>
+                                        <option value="Cartão de Crédito">Cartão de Crédito</option>
+                                        <option value="Cartão de Débito">Cartão de Débito</option>
+                                        <option value="Fiado / A Prazo">Fiado / A Prazo</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="space-y-1 text-xs">
+                                <div class="flex justify-between text-gray-400">
+                                    <span>Subtotal:</span>
+                                    <span class="mono" id="posSubtotal">R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-gray-400">
+                                    <span>Desconto:</span>
+                                    <span class="mono text-red-400" id="posDiscountDisplay">- R$ 0,00</span>
+                                </div>
+                                <div class="flex justify-between text-base font-extrabold text-white pt-2 border-t border-gray-800">
+                                    <span>TOTAL A PAGAR:</span>
+                                    <span class="mono text-emerald-400 text-xl" id="posTotal">R$ 0,00</span>
+                                </div>
+                            </div>
+
+                            <button onclick="finishPosSale()" class="w-full py-3 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg transition text-sm flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-check-circle"></i> Finalizar Venda e Emitir Recibo
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </section>
+
+            <!-- TAB 3: ESTOQUE E PRODUTOS -->
+            <section id="tab-products" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Gestão de Estoque</h2>
+                        <p class="text-xs text-gray-400">Cadastre e controle seus produtos e margens de lucro</p>
+                    </div>
+                    <button onclick="openProductModal()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-plus"></i> Novo Produto
+                    </button>
+                </div>
+
+                <div class="bg-cardbg border border-borderbg rounded-2xl p-5 space-y-4">
+                    <!-- TABELA DE PRODUTOS -->
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead class="bg-gray-900/80 text-gray-400 uppercase text-[10px] font-bold">
+                                <tr>
+                                    <th class="p-3">SKU</th>
+                                    <th class="p-3">Produto</th>
+                                    <th class="p-3">Categoria</th>
+                                    <th class="p-3">Custo / Venda</th>
+                                    <th class="p-3">Margem</th>
+                                    <th class="p-3">Qtd Estoque</th>
+                                    <th class="p-3 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="productTableBody" class="divide-y divide-gray-800">
+                                <!-- Injetado via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 4: FINANCEIRO & DRE -->
+            <section id="tab-finance" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Gestão Financeira & DRE</h2>
+                        <p class="text-xs text-gray-400">Demonstrativo de lucros e controle de contas a pagar</p>
+                    </div>
+                    <button onclick="openBillModal()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-minus-circle"></i> Nova Despesa / Conta
+                    </button>
+                </div>
+
+                <!-- DRE SIMPLIFICADO -->
+                <div class="bg-cardbg border border-borderbg rounded-2xl p-5 space-y-3">
+                    <h3 class="text-sm font-bold text-white uppercase tracking-wider">Demonstrativo do Resultado do Exercício (DRE Mês Atual)</h3>
+                    
+                    <div class="space-y-2 text-xs divide-y divide-gray-800">
+                        <div class="flex justify-between py-1 font-semibold text-white">
+                            <span>(+) Receita Bruta de Vendas</span>
+                            <span class="mono text-emerald-400" id="dreGrossRevenue">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between py-1 text-gray-400">
+                            <span>(-) Custo das Mercadorias Vendidas (CPV)</span>
+                            <span class="mono text-red-400" id="dreCmv">- R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between py-1 font-bold text-indigo-300">
+                            <span>(=) LUCRO BRUTO OPERACIONAL</span>
+                            <span class="mono" id="dreGrossProfit">R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between py-1 text-gray-400">
+                            <span>(-) Despesas Operacionais / Fixas / Salários</span>
+                            <span class="mono text-red-400" id="dreExpenses">- R$ 0,00</span>
+                        </div>
+                        <div class="flex justify-between py-2 font-extrabold text-base border-t-2 border-borderbg">
+                            <span class="text-white">(=) LUCRO LÍQUIDO DO PERÍODO</span>
+                            <span class="mono text-emerald-400" id="dreNetProfit">R$ 0,00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TABELA DE CONTAS A PAGAR -->
+                <div class="bg-cardbg border border-borderbg rounded-2xl p-5 space-y-4">
+                    <h3 class="text-sm font-bold text-white">Contas a Pagar & Despesas</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead class="bg-gray-900/80 text-gray-400 uppercase text-[10px] font-bold">
+                                <tr>
+                                    <th class="p-3">Descrição</th>
+                                    <th class="p-3">Categoria</th>
+                                    <th class="p-3">Vencimento</th>
+                                    <th class="p-3">Valor</th>
+                                    <th class="p-3">Status</th>
+                                    <th class="p-3 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billsTableBody" class="divide-y divide-gray-800">
+                                <!-- Injetado via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- TAB 5: CLIENTES & CRM -->
+            <section id="tab-crm" class="tab-content hidden space-y-6">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div>
+                        <h2 class="text-xl font-bold text-white">Gestão de Clientes & CRM</h2>
+                        <p class="text-xs text-gray-400">Cadastro de clientes e histórico de compras</p>
+                    </div>
+                    <button onclick="openClientModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold transition flex items-center gap-2">
+                        <i class="fa-solid fa-user-plus"></i> Novo Cliente
+                    </button>
+                </div>
+
+                <div class="bg-cardbg border border-borderbg rounded-2xl p-5 space-y-4">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs text-gray-300">
+                            <thead class="bg-gray-900/80 text-gray-400 uppercase text-[10px] font-bold">
+                                <tr>
+                                    <th class="p-3">Nome do Cliente</th>
+                                    <th class="p-3">Telefone / Contato</th>
+                                    <th class="p-3">Saldo Fiado / Débito</th>
+                                    <th class="p-3 text-right">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody id="clientTableBody" class="divide-y divide-gray-800">
+                                <!-- Injetado via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </main>
+
+    <!-- MODAIS -->
+
+    <!-- MODAL PRODUTO -->
+    <div id="modalProduct" class="fixed inset-0 bg-black/70 hidden backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardbg border border-borderbg rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white" id="modalProductTitle">Cadastrar Novo Produto</h3>
+            <input type="hidden" id="prodId">
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-gray-400 mb-1">Nome do Produto</label>
+                    <input type="text" id="prodName" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 mb-1">SKU / Código</label>
+                        <input type="text" id="prodSku" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white mono">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 mb-1">Categoria</label>
+                        <input type="text" id="prodCategory" placeholder="Ex: Bebidas" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 mb-1">Preço de Custo (R$)</label>
+                        <input type="number" id="prodCost" step="0.01" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white mono">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 mb-1">Preço de Venda (R$)</label>
+                        <input type="number" id="prodPrice" step="0.01" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white mono">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 mb-1">Estoque Atual</label>
+                        <input type="number" id="prodStock" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white mono">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 mb-1">Estoque Mínimo</label>
+                        <input type="number" id="prodMinStock" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white mono">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modalProduct')" class="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl text-xs">Cancelar</button>
+                <button onclick="saveProduct()" class="px-4 py-2 bg-brand-600 hover:bg-brand-500 text-white rounded-xl text-xs font-semibold">Salvar Produto</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL DESPESA / CONTA -->
+    <div id="modalBill" class="fixed inset-0 bg-black/70 hidden backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardbg border border-borderbg rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Lançar Nova Despesa</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-gray-400 mb-1">Descrição</label>
+                    <input type="text" id="billDesc" placeholder="Ex: Aluguel do Imóvel" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Categoria</label>
+                    <select id="billCategory" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white">
+                        <option value="Aluguel">Aluguel / Imóvel</option>
+                        <option value="Folha de Pagamento">Folha de Pagamento / Salários</option>
+                        <option value="Fornecedores">Fornecedores / Mercadoria</option>
+                        <option value="Energia / Água">Energia / Água / Internet</option>
+                        <option value="Impostos">Impostos & Taxas</option>
+                        <option value="Outros">Outros</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 mb-1">Valor (R$)</label>
+                        <input type="number" id="billValue" step="0.01" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white mono">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 mb-1">Data Vencimento</label>
+                        <input type="date" id="billDueDate" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modalBill')" class="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl text-xs">Cancelar</button>
+                <button onclick="saveBill()" class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl text-xs font-semibold">Salvar Despesa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL CLIENTE -->
+    <div id="modalClient" class="fixed inset-0 bg-black/70 hidden backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-cardbg border border-borderbg rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-base font-bold text-white">Cadastrar Cliente</h3>
+            <div class="space-y-3 text-xs">
+                <div>
+                    <label class="block text-gray-400 mb-1">Nome Completo</label>
+                    <input type="text" id="cliName" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white">
+                </div>
+                <div>
+                    <label class="block text-gray-400 mb-1">Telefone / WhatsApp</label>
+                    <input type="text" id="cliPhone" class="w-full bg-gray-900 border border-gray-800 rounded-lg px-3 py-2 text-white">
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeModal('modalClient')" class="px-4 py-2 bg-gray-800 text-gray-300 rounded-xl text-xs">Cancelar</button>
+                <button onclick="saveClient()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold">Salvar Cliente</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TELA DE COMPROVANTE / RECIBO (PRINT ONLY) -->
+    <div class="hidden print-only p-8 max-w-md mx-auto space-y-4 font-mono text-sm">
+        <div class="text-center border-b border-black pb-4">
+            <h1 class="text-xl font-bold">OMNICOMÉRCIO ERP & POS</h1>
+            <p class="text-xs">COMPROVANTE DE VENDA</p>
+            <p class="text-xs" id="receiptDate">--</p>
+        </div>
+        <div class="space-y-1 text-xs" id="receiptItems">
+            <!-- Itens via JS -->
+        </div>
+        <div class="border-t border-black pt-2 space-y-1 text-xs">
+            <div class="flex justify-between font-bold">
+                <span>TOTAL:</span>
+                <span id="receiptTotal">R$ 0,00</span>
+            </div>
+            <div class="flex justify-between">
+                <span>FORMA PGTO:</span>
+                <span id="receiptPayment">--</span>
+            </div>
+            <div class="flex justify-between">
+                <span>CLIENTE:</span>
+                <span id="receiptClient">--</span>
+            </div>
+        </div>
+        <div class="text-center text-xs pt-4 border-t border-black">
+            Obrigado pela preferência!
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT COMPLETO -->
+    <script>
+        // ESTADO GLOBAL DA APLICAÇÃO
+        let db = {
+            products: [],
+            sales: [],
+            bills: [],
+            clients: []
+        };
+
+        let posCart = [];
+        let chartFinancialInstance = null;
+        let chartCategoriesInstance = null;
+
+        // INICIALIZAÇÃO
+        window.addEventListener('DOMContentLoaded', () => {
+            loadStorage();
+            document.getElementById('currentDateStr').innerText = new Date().toLocaleDateString('pt-BR', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+            initCharts();
+            renderAll();
+        });
+
+        // NAVEGAÇÃO ENTRE TABS
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.nav-btn').forEach(el => {
+                el.classList.remove('bg-brand-600', 'text-white');
+                el.classList.add('text-gray-400');
+            });
+
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+            const activeBtn = document.getElementById(`nav-${tabId}`);
+            activeBtn.classList.add('bg-brand-600', 'text-white');
+            activeBtn.classList.remove('text-gray-400');
+
+            if (tabId === 'dashboard') updateCharts();
+        }
+
+        // GERENCIAMENTO DE STORAGE
+        function loadStorage() {
+            const data = localStorage.getItem('omnicomercio_db');
+            if (data) {
+                db = JSON.parse(data);
+            } else {
+                loadSeedData();
+            }
+        }
+
+        function saveStorage() {
+            localStorage.setItem('omnicomercio_db', JSON.stringify(db));
+            renderAll();
+        }
+
+        // DADOS DE DEMONSTRAÇÃO (SEED DATA)
+        function loadSeedData() {
+            db = {
+                products: [
+                    { id: 1, name: 'Refrigerante 2L', category: 'Bebidas', sku: 'BEB001', cost: 4.50, price: 9.00, stock: 45, minStock: 10 },
+                    { id: 2, name: 'Café Gourmet 500g', category: 'Alimentos', sku: 'ALI002', cost: 12.00, price: 24.90, stock: 8, minStock: 15 },
+                    { id: 3, name: 'Detergente Neutro', category: 'Limpeza', sku: 'LIM003', cost: 1.80, price: 3.50, stock: 60, minStock: 20 },
+                    { id: 4, name: 'Biscoito Recheado', category: 'Alimentos', sku: 'ALI004', cost: 2.10, price: 4.50, stock: 5, minStock: 10 }
+                ],
+                sales: [
+                    { id: 101, date: new Date().toISOString(), total: 49.80, costTotal: 24.00, client: 'João Silva', payment: 'Pix', items: [{ name: 'Café Gourmet 500g', qty: 2, price: 24.90 }] }
+                ],
+                bills: [
+                    { id: 201, desc: 'Aluguel Loja', category: 'Aluguel', value: 1200.00, dueDate: '2026-11-10', status: 'Pendente' },
+                    { id: 202, desc: 'Conta de Luz', category: 'Energia / Água', value: 350.00, dueDate: '2026-11-05', status: 'Pago' }
+                ],
+                clients: [
+                    { id: 301, name: 'João Silva', phone: '(48) 99999-8888', balance: 0.00 },
+                    { id: 302, name: 'Maria Oliveira', phone: '(48) 98888-7777', balance: 45.00 }
+                ]
+            };
+            saveStorage();
+        }
+
+        function resetData() {
+            if (confirm("Tem certeza que deseja zerar todos os dados do sistema?")) {
+                db = { products: [], sales: [], bills: [], clients: [] };
+                saveStorage();
+            }
+        }
+
+        // RENDERIZAÇÃO GERAL DA INTERFACE
+        function renderAll() {
+            renderDashboard();
+            renderPosProducts();
+            renderPosCart();
+            renderProductsTable();
+            renderBillsTable();
+            renderClientsTable();
+            updateCategoryDropdown();
+        }
+
+        // --- DASHBOARD ---
+        function renderDashboard() {
+            const todayStr = new Date().toISOString().split('T')[0];
+            const todaySales = db.sales.filter(s => s.date.startsWith(todayStr));
+            const salesTodayTotal = todaySales.reduce((acc, s) => acc + s.total, 0);
+            
+            const monthSalesTotal = db.sales.reduce((acc, s) => acc + s.total, 0);
+            const monthCmv = db.sales.reduce((acc, s) => acc + s.costTotal, 0);
+            const monthExpenses = db.bills.reduce((acc, b) => acc + b.value, 0);
+            const netProfit = monthSalesTotal - monthCmv - monthExpenses;
+            const netMargin = monthSalesTotal > 0 ? (netProfit / monthSalesTotal) * 100 : 0;
+
+            const pendingBills = db.bills.filter(b => b.status === 'Pendente');
+            const pendingBillsTotal = pendingBills.reduce((acc, b) => acc + b.value, 0);
+            const lowStockItems = db.products.filter(p => p.stock <= p.minStock);
+
+            document.getElementById('kpiSalesToday').innerText = formatBRL(salesTodayTotal);
+            document.getElementById('kpiSalesCountToday').innerText = `${todaySales.length} pedidos hoje`;
+            document.getElementById('kpiSalesMonth').innerText = formatBRL(monthSalesTotal);
+            document.getElementById('kpiNetProfitMonth').innerText = formatBRL(netProfit);
+            document.getElementById('kpiMarginMonth').innerText = `Margem Líquida: ${netMargin.toFixed(1)}%`;
+            document.getElementById('kpiBillsPending').innerText = formatBRL(pendingBillsTotal);
+            document.getElementById('kpiBillsCount').innerText = `${pendingBills.length} pendentes`;
+            document.getElementById('kpiLowStockCount').innerText = lowStockItems.length;
+
+            // Atualizar DRE
+            document.getElementById('dreGrossRevenue').innerText = formatBRL(monthSalesTotal);
+            document.getElementById('dreCmv').innerText = `- ${formatBRL(monthCmv)}`;
+            document.getElementById('dreGrossProfit').innerText = formatBRL(monthSalesTotal - monthCmv);
+            document.getElementById('dreExpenses').innerText = `- ${formatBRL(monthExpenses)}`;
+            document.getElementById('dreNetProfit').innerText = formatBRL(netProfit);
+        }
+
+        // --- PDV / FRENTE DE CAIXA ---
+        function renderPosProducts() {
+            const search = document.getElementById('posSearch').value.toLowerCase();
+            const category = document.getElementById('posCategoryFilter').value;
+            const container = document.getElementById('posProductGrid');
+
+            const filtered = db.products.filter(p => {
+                const matchName = p.name.toLowerCase().includes(search) || p.sku.toLowerCase().includes(search);
+                const matchCat = category === 'all' || p.category === category;
+                return matchName && matchCat;
+            });
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<div class="col-span-full text-center py-8 text-xs text-gray-500">Nenhum produto encontrado.</div>`;
+                return;
+            }
+
+            container.innerHTML = filtered.map(p => `
+                <div onclick="addToPosCart(${p.id})" class="bg-cardbg border border-borderbg hover:border-brand-500 p-3 rounded-xl transition cursor-pointer flex flex-col justify-between space-y-2">
+                    <div>
+                        <span class="text-[10px] text-gray-500 mono">${p.sku}</span>
+                        <h4 class="text-xs font-bold text-white leading-tight">${p.name}</h4>
+                    </div>
+                    <div class="flex items-end justify-between pt-2 border-t border-gray-800">
+                        <span class="text-xs font-extrabold text-emerald-400 mono">${formatBRL(p.price)}</span>
+                        <span class="text-[10px] ${p.stock <= p.minStock ? 'text-amber-400 font-bold' : 'text-gray-400'}">Est: ${p.stock}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function addToPosCart(productId) {
+            const product = db.products.find(p => p.id === productId);
+            if (!product || product.stock <= 0) {
+                alert("Produto fora de estoque!");
+                return;
+            }
+
+            const item = posCart.find(i => i.productId === productId);
+            if (item) {
+                if (item.qty + 1 > product.stock) {
+                    alert("Quantidade excede o estoque disponível!");
+                    return;
+                }
+                item.qty++;
+            } else {
+                posCart.push({ productId, name: product.name, price: product.price, cost: product.cost, qty: 1 });
+            }
+            renderPosCart();
+        }
+
+        function renderPosCart() {
+            const container = document.getElementById('posCartList');
+            if (posCart.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Carrinho vazio. Clique nos produtos para adicionar.</div>`;
+                updatePosTotals();
+                return;
+            }
+
+            container.innerHTML = posCart.map((item, index) => `
+                <div class="flex items-center justify-between py-2 text-xs">
+                    <div class="flex-1 pr-2">
+                        <div class="font-medium text-white">${item.name}</div>
+                        <div class="text-[10px] text-gray-400 mono">${formatBRL(item.price)} un.</div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <input type="number" value="${item.qty}" min="1" onchange="updateCartQty(${index}, this.value)" class="w-12 bg-gray-900 border border-gray-800 rounded px-1.5 py-0.5 text-center text-white mono">
+                        <span class="font-bold text-emerald-400 mono w-16 text-right">${formatBRL(item.price * item.qty)}</span>
+                        <button onclick="removeFromPosCart(${index})" class="text-red-400 hover:text-red-300 ms-1"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </div>
+            `).join('');
+
+            updatePosTotals();
+        }
+
+        function updateCartQty(index, newQty) {
+            const qty = parseInt(newQty) || 1;
+            const item = posCart[index];
+            const product = db.products.find(p => p.id === item.productId);
+            if (qty > product.stock) {
+                alert("Estoque insuficiente!");
+                renderPosCart();
+                return;
+            }
+            item.qty = qty;
+            renderPosCart();
+        }
+
+        function removeFromPosCart(index) {
+            posCart.splice(index, 1);
+            renderPosCart();
+        }
+
+        function clearPosCart() {
+            posCart = [];
+            renderPosCart();
+        }
+
+        function updatePosTotals() {
+            const subtotal = posCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const discount = parseFloat(document.getElementById('posDiscount').value) || 0;
+            const total = Math.max(0, subtotal - discount);
+
+            document.getElementById('posSubtotal').innerText = formatBRL(subtotal);
+            document.getElementById('posDiscountDisplay').innerText = `- ${formatBRL(discount)}`;
+            document.getElementById('posTotal').innerText = formatBRL(total);
+        }
+
+        function finishPosSale() {
+            if (posCart.length === 0) {
+                alert("Adicione ao menos um produto ao carrinho!");
+                return;
+            }
+
+            const discount = parseFloat(document.getElementById('posDiscount').value) || 0;
+            const subtotal = posCart.reduce((acc, i) => acc + (i.price * i.qty), 0);
+            const total = Math.max(0, subtotal - discount);
+            const costTotal = posCart.reduce((acc, i) => acc + (i.cost * i.qty), 0);
+            const payment = document.getElementById('posPaymentMethod').value;
+            const clientId = document.getElementById('posClientSelect').value;
+            const client = db.clients.find(c => c.id == clientId);
+            const clientName = client ? client.name : 'Consumidor Balcão';
+
+            // Baixa no Estoque
+            posCart.forEach(cartItem => {
+                const prod = db.products.find(p => p.id === cartItem.productId);
+                if (prod) prod.stock -= cartItem.qty;
+            });
+
+            // Adicionar Venda
+            const sale = {
+                id: Date.now(),
+                date: new Date().toISOString(),
+                subtotal,
+                discount,
+                total,
+                costTotal,
+                payment,
+                client: clientName,
+                items: [...posCart]
+            };
+            db.sales.push(sale);
+
+            // Atualizar saldo fiado do cliente se aplicável
+            if (payment === 'Fiado / A Prazo' && client) {
+                client.balance += total;
+            }
+
+            saveStorage();
+            printReceipt(sale);
+            clearPosCart();
+            alert("Venda realizada com sucesso!");
+        }
+
+        function printReceipt(sale) {
+            document.getElementById('receiptDate').innerText = new Date(sale.date).toLocaleString('pt-BR');
+            document.getElementById('receiptTotal').innerText = formatBRL(sale.total);
+            document.getElementById('receiptPayment').innerText = sale.payment;
+            document.getElementById('receiptClient').innerText = sale.client;
+
+            document.getElementById('receiptItems').innerHTML = sale.items.map(i => `
+                <div class="flex justify-between">
+                    <span>${i.qty}x ${i.name}</span>
+                    <span>${formatBRL(i.price * i.qty)}</span>
+                </div>
+            `).join('');
+
+            window.print();
+        }
+
+        // --- ESTOQUE E PRODUTOS ---
+        function renderProductsTable() {
+            const tbody = document.getElementById('productTableBody');
+            if (db.products.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="p-4 text-center text-gray-500">Nenhum produto cadastrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = db.products.map(p => {
+                const margin = p.price > 0 ? (((p.price - p.cost) / p.price) * 100).toFixed(1) : 0;
+                return `
+                    <tr class="hover:bg-gray-900/50">
+                        <td class="p-3 mono text-gray-400">${p.sku}</td>
+                        <td class="p-3 font-medium text-white">${p.name}</td>
+                        <td class="p-3 text-gray-400">${p.category}</td>
+                        <td class="p-3 mono">
+                            <span class="text-gray-400">${formatBRL(p.cost)}</span> / 
+                            <span class="text-emerald-400 font-bold">${formatBRL(p.price)}</span>
+                        </td>
+                        <td class="p-3"><span class="px-2 py-0.5 rounded text-[10px] bg-indigo-950 text-indigo-300 font-semibold">${margin}%</span></td>
+                        <td class="p-3 mono ${p.stock <= p.minStock ? 'text-amber-400 font-bold' : ''}">${p.stock} un</td>
+                        <td class="p-3 text-right">
+                            <button onclick="editProduct(${p.id})" class="text-sky-400 hover:text-sky-300 me-2"><i class="fa-solid fa-pen"></i></button>
+                            <button onclick="deleteProduct(${p.id})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function openProductModal(prod = null) {
+            document.getElementById('prodId').value = prod ? prod.id : '';
+            document.getElementById('prodName').value = prod ? prod.name : '';
+            document.getElementById('prodSku').value = prod ? prod.sku : `SKU${Math.floor(100 + Math.random() * 900)}`;
+            document.getElementById('prodCategory').value = prod ? prod.category : '';
+            document.getElementById('prodCost').value = prod ? prod.cost : '';
+            document.getElementById('prodPrice').value = prod ? prod.price : '';
+            document.getElementById('prodStock').value = prod ? prod.stock : '';
+            document.getElementById('prodMinStock').value = prod ? prod.minStock : 5;
+            document.getElementById('modalProduct').classList.remove('hidden');
+        }
+
+        function saveProduct() {
+            const id = document.getElementById('prodId').value;
+            const productData = {
+                id: id ? parseInt(id) : Date.now(),
+                name: document.getElementById('prodName').value,
+                sku: document.getElementById('prodSku').value,
+                category: document.getElementById('prodCategory').value || 'Geral',
+                cost: parseFloat(document.getElementById('prodCost').value) || 0,
+                price: parseFloat(document.getElementById('prodPrice').value) || 0,
+                stock: parseInt(document.getElementById('prodStock').value) || 0,
+                minStock: parseInt(document.getElementById('prodMinStock').value) || 0
+            };
+
+            if (id) {
+                const idx = db.products.findIndex(p => p.id == id);
+                db.products[idx] = productData;
+            } else {
+                db.products.push(productData);
+            }
+
+            saveStorage();
+            closeModal('modalProduct');
+        }
+
+        function editProduct(id) {
+            const prod = db.products.find(p => p.id == id);
+            openProductModal(prod);
+        }
+
+        function deleteProduct(id) {
+            if (confirm("Excluir este produto?")) {
+                db.products = db.products.filter(p => p.id != id);
+                saveStorage();
+            }
+        }
+
+        // --- CONTAS A PAGAR & FINANCEIRO ---
+        function renderBillsTable() {
+            const tbody = document.getElementById('billsTableBody');
+            if (db.bills.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-gray-500">Nenhuma despesa lançada.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = db.bills.map(b => `
+                <tr class="hover:bg-gray-900/50">
+                    <td class="p-3 font-medium text-white">${b.desc}</td>
+                    <td class="p-3 text-gray-400">${b.category}</td>
+                    <td class="p-3 text-gray-400">${b.dueDate}</td>
+                    <td class="p-3 mono font-bold text-red-400">${formatBRL(b.value)}</td>
+                    <td class="p-3">
+                        <span class="px-2 py-0.5 rounded text-[10px] ${b.status === 'Pago' ? 'bg-emerald-950 text-emerald-400' : 'bg-amber-950 text-amber-400'}">${b.status}</span>
+                    </td>
+                    <td class="p-3 text-right">
+                        ${b.status !== 'Pago' ? `<button onclick="payBill(${b.id})" class="text-emerald-400 hover:text-emerald-300 me-2"><i class="fa-solid fa-check"></i> Pagar</button>` : ''}
+                        <button onclick="deleteBill(${b.id})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openBillModal() {
+            document.getElementById('modalBill').classList.remove('hidden');
+        }
+
+        function saveBill() {
+            db.bills.push({
+                id: Date.now(),
+                desc: document.getElementById('billDesc').value,
+                category: document.getElementById('billCategory').value,
+                value: parseFloat(document.getElementById('billValue').value) || 0,
+                dueDate: document.getElementById('billDueDate').value,
+                status: 'Pendente'
+            });
+            saveStorage();
+            closeModal('modalBill');
+        }
+
+        function payBill(id) {
+            const bill = db.bills.find(b => b.id == id);
+            if (bill) bill.status = 'Pago';
+            saveStorage();
+        }
+
+        function deleteBill(id) {
+            db.bills = db.bills.filter(b => b.id != id);
+            saveStorage();
+        }
+
+        // --- CLIENTES & CRM ---
+        function renderClientsTable() {
+            const tbody = document.getElementById('clientTableBody');
+            const select = document.getElementById('posClientSelect');
+            
+            select.innerHTML = `<option value="">Consumidor Não Identificado (Balcão)</option>` + 
+                db.clients.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+
+            if (db.clients.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Nenhum cliente cadastrado.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = db.clients.map(c => `
+                <tr class="hover:bg-gray-900/50">
+                    <td class="p-3 font-medium text-white">${c.name}</td>
+                    <td class="p-3 text-gray-400">${c.phone}</td>
+                    <td class="p-3 mono ${c.balance > 0 ? 'text-red-400 font-bold' : 'text-gray-400'}">${formatBRL(c.balance)}</td>
+                    <td class="p-3 text-right">
+                        ${c.balance > 0 ? `<button onclick="receiveDebt(${c.id})" class="text-emerald-400 hover:text-emerald-300 me-2"><i class="fa-solid fa-hand-holding-dollar"></i> Quitar Fiado</button>` : ''}
+                        <button onclick="deleteClient(${c.id})" class="text-red-400 hover:text-red-300"><i class="fa-solid fa-trash"></i></button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openClientModal() {
+            document.getElementById('modalClient').classList.remove('hidden');
+        }
+
+        function saveClient() {
+            db.clients.push({
+                id: Date.now(),
+                name: document.getElementById('cliName').value,
+                phone: document.getElementById('cliPhone').value,
+                balance: 0.00
+            });
+            saveStorage();
+            closeModal('modalClient');
+        }
+
+        function receiveDebt(id) {
+            const client = db.clients.find(c => c.id == id);
+            if (client) {
+                client.balance = 0.00;
+                saveStorage();
+            }
+        }
+
+        function deleteClient(id) {
+            db.clients = db.clients.filter(c => c.id != id);
+            saveStorage();
+        }
+
+        // --- UTILS & AUXILIARES ---
+        function updateCategoryDropdown() {
+            const categories = [...new Set(db.products.map(p => p.category))];
+            const select = document.getElementById('posCategoryFilter');
+            select.innerHTML = `<option value="all">Todas Categorias</option>` + 
+                categories.map(c => `<option value="${c}">${c}</option>`).join('');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        function formatBRL(val) {
+            return val.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+        }
+
+        function toggleTheme() {
+            const html = document.documentElement;
+            html.classList.toggle('dark');
+        }
+
+        // --- CHARTS ---
+        function initCharts() {
+            const ctx1 = document.getElementById('chartFinancial').getContext('2d');
+            chartFinancialInstance = new Chart(ctx1, {
+                type: 'bar',
+                data: {
+                    labels: ['Semana 1', 'Semana 2', 'Semana 3', 'Semana 4'],
+                    datasets: [
+                        { label: 'Receitas', data: [1200, 1900, 3000, 2500], backgroundColor: '#10b981' },
+                        { label: 'Despesas', data: [800, 1100, 1400, 900], backgroundColor: '#ef4444' }
+                    ]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#9ca3af' } } } }
+            });
+
+            const ctx2 = document.getElementById('chartCategories').getContext('2d');
+            chartCategoriesInstance = new Chart(ctx2, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Bebidas', 'Alimentos', 'Limpeza'],
+                    datasets: [{ data: [40, 35, 25], backgroundColor: ['#6366f1', '#38bdf8', '#f59e0b'] }]
+                },
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom', labels: { color: '#9ca3af' } } } }
+            });
+        }
+
+        function updateCharts() {
+            if (!chartFinancialInstance || !chartCategoriesInstance) return;
+            const totalRevenue = db.sales.reduce((acc, s) => acc + s.total, 0);
+            const totalExpenses = db.bills.reduce((acc, b) => acc + b.value, 0);
+            
+            chartFinancialInstance.data.datasets[0].data = [totalRevenue * 0.2, totalRevenue * 0.3, totalRevenue * 0.25, totalRevenue * 0.25];
+            chartFinancialInstance.data.datasets[1].data = [totalExpenses * 0.25, totalExpenses * 0.25, totalExpenses * 0.25, totalExpenses * 0.25];
+            chartFinancialInstance.update();
+        }
+    </script>
+</body>
+</html>
